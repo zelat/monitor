@@ -1,1 +1,1 @@
-/usr/bin/cc -g CMakeFiles/monitor.dir/main.c.o -o monitor  /usr/lib64/librt.so 
+/usr/bin/c++ -g CMakeFiles/monitor.dir/main.cc.o -o monitor  /usr/lib64/librt.so 

@@ -44,6 +44,9 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../include/c++/4.8.5"/>
+					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../include/c++/4.8.5/x86_64-redhat-linux"/>
+					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../include/c++/4.8.5/backward"/>
 					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include"/>
 					<Add directory="/usr/local/include"/>
 					<Add directory="/usr/include"/>
@@ -62,6 +65,9 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../include/c++/4.8.5"/>
+					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../include/c++/4.8.5/x86_64-redhat-linux"/>
+					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../include/c++/4.8.5/backward"/>
 					<Add directory="/usr/lib/gcc/x86_64-redhat-linux/4.8.5/include"/>
 					<Add directory="/usr/local/include"/>
 					<Add directory="/usr/include"/>
@@ -74,7 +80,7 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/root/monitor/main.c">
+		<Unit filename="/root/monitor/main.cc">
 			<Option target="monitor"/>
 		</Unit>
 		<Unit filename="/root/monitor/CMakeLists.txt">
