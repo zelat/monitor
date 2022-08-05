@@ -1,15 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <inttypes.h>
-#include <stdbool.h>
-#include <csignal>
 #include <sys/wait.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 
+#define SCRIPT_SYSCTL   "sysctl -p"
 #define DP_MNT_SHM_NAME "/dp_mnt.shm"
 #define MAX_DP_THREADS 4
 #define DP_MISS_HB_MAX 60
@@ -24,34 +23,34 @@ enum {
 };
 
 typedef struct proc_info_ {
-    char name[32];
-    char path[64];
-    int active  : 1,
-    running : 1;
-    pid_t pid;
-    int short_live_count;
+    char name[32];                // 进程名
+    char path[64];                // 进程路径
+    int active  : 1,              // 进程状态
+    running : 1;                  // 进程是否在运行状态
+    pid_t pid;                    // pid号
+    int short_live_count;         // 进程存活时间
     struct timeval start;
-    int exit_status;
+    int exit_status;              // 退出状态
 } proc_info_t;
+
+typedef struct dp_mnt_shm_ {
+    uint32_t dp_hb[MAX_DP_THREADS];    // dp心跳计数器
+    bool dp_active[MAX_DP_THREADS];    // dp状态
+} dp_mnt_shm_t;
 
 static uint32_t g_dp_last_hb[MAX_DP_THREADS], g_dp_miss_hb[MAX_DP_THREADS];
 static volatile sig_atomic_t g_exit_signal = 0;
-
-typedef struct dp_mnt_shm_ {
-    uint32_t dp_hb[MAX_DP_THREADS];
-    bool dp_active[MAX_DP_THREADS];
-} dp_mnt_shm_t;
-
 static dp_mnt_shm_t *g_shm;
 
 static proc_info_t g_procs[PROC_MAX] = {
-//        g_procs[PROC_CTRL] = {"ctrl", "/usr/local/bin/controller", },
-//        g_procs[PROC_SCANNER] = {"scanner", "/usr/local/bin/scanner", },
-        g_procs[PROC_DP] = {"dp", "/usr/local/bin/dp", },
-//        g_procs[PROC_AGENT] = {"agent", "/usr/local/bin/agent", },
-//        g_procs[PROC_SCANNER_STANDALONE] = {"scanner", "/usr/local/bin/scanner", },
+        [PROC_CTRL] = {"ctrl", "/usr/local/bin/controller", },
+        [PROC_SCANNER] = {"scanner", "/usr/local/bin/scanner", },
+        [PROC_DP] = {"ardp", "/root/ardp/cmake-build-debug-dev/ardp",},
+        [PROC_AGENT] = {"agent", "/usr/local/bin/agent", },
+        [PROC_SCANNER_STANDALONE] = {"scanner", "/usr/local/bin/scanner", },
 };
 
+// 创建进程间共享文件，用于heartbeat
 template<typename T>
 T *create_shm(size_t size) {
     int fd;
@@ -162,12 +161,11 @@ static void stop_proc(int i, int sig, int wait)
 
 static void check_hearbeat(){
     int i;
-    
     if (!g_procs[PROC_DP].active){
         return;
     }
-
-    for (int i = 0; i < MAX_DP_THREADS; ++i) {
+    for (i = 0; i < MAX_DP_THREADS; ++i) {
+        printf("dp_hb = %u\n", g_shm->dp_hb[i]);
         if (!g_shm->dp_active[i]) {
             continue;
         }
@@ -211,13 +209,14 @@ int main() {
         return -1;
     }
 
-    printf("pid=%d", getpid());
+    printf("pid = %d", getpid());
 
     for (i = 0; i < MAX_DP_THREADS; i ++) {
         g_dp_last_hb[i] = g_dp_miss_hb[i] = g_shm->dp_hb[i] = 0;
     }
 
-    ret = 0;
+    ret = system(SCRIPT_SYSCTL);
+    g_procs[PROC_DP].active = true;
 
     while (1) {
         if (g_exit_signal == 1) {
